@@ -1,7 +1,7 @@
 const { getSupabase } = require('../config/supabase');
 const path = require('path');
 
-const BUCKET_NAME = 'holyspots';
+const BUCKET_NAME = 'bhagavadgita';
 const PROXY_BASE_URL = 'https://sb.productmind.ru/storage/v1/object/public';
 
 /**
@@ -58,7 +58,7 @@ async function deleteFile(relativePath) {
 
 /**
  * Get public URL for a file
- * @param {string} relativePath - Path like "holyspots/spots/uuid/image.jpg"
+ * @param {string} relativePath - Path like "bhagavadgita/uuid.mp3"
  * @returns {string} Full public URL via proxy
  */
 function getPublicUrl(relativePath) {
@@ -68,6 +68,17 @@ function getPublicUrl(relativePath) {
   if (relativePath.startsWith('http')) return relativePath;
 
   return `${PROXY_BASE_URL}/${relativePath}`;
+}
+
+/**
+ * Build public redirect URL for legacy /Files/* paths
+ * @param {string} filePath - Filename (e.g., "uuid.mp3")
+ * @returns {string} Full public URL for redirect
+ */
+function buildPublicRedirectUrl(filePath) {
+  // Remove leading slash if present
+  const cleanPath = filePath.startsWith('/') ? filePath.substring(1) : filePath;
+  return `${PROXY_BASE_URL}/${BUCKET_NAME}/${cleanPath}`;
 }
 
 /**
@@ -97,6 +108,7 @@ module.exports = {
   uploadFile,
   deleteFile,
   getPublicUrl,
+  buildPublicRedirectUrl,
   BUCKET_NAME,
   PROXY_BASE_URL
 };

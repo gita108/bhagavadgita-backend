@@ -1,13 +1,13 @@
 {
-  "name": "holyspots-backend-v2026a",
+  "name": "bhagavadgita-backend",
   "version": "1.0.0",
-  "description": "HolySpots Backend API v2012 & v2026",
+  "description": "Bhagavad-Gita Backend API v2012",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
     "dev": "node --watch src/index.js"
   },
-  "keywords": ["holyspots", "api", "backend"],
+  "keywords": ["bhagavadgita", "api", "backend"],
   "author": "",
   "license": "ISC",
   "dependencies": {

@@ -1,27 +1,21 @@
 /**
  * v2012 API Routes
- * Compatible with holyspots-mobile-java-v2012 and holyspots-mobile-swift-v2012
+ * Compatible with bhagavadgita-mobile-java-v2012 and bhagavadgita-mobile-swift-v2012
  */
 
 const express = require('express');
 const router = express.Router();
 
-// Import route handlers
-const regionsRoutes = require('./regions');
-const spotsRoutes = require('./spots');
-const guidesRoutes = require('./guides');
-const mapsRoutes = require('./maps');
-const reviewsRoutes = require('./reviews');
-const placesRoutes = require('./places');
-const directionsRoutes = require('./directions');
+// Import Bhagavad-Gita route handlers
+const languagesRoutes = require('./languages');
+const booksRoutes = require('./books');
+const chaptersRoutes = require('./chapters');
+const quotesRoutes = require('./quotes');
 
 // Mount routes under /Data prefix (matching v2012 API format)
-router.use('/Data', regionsRoutes);
-router.use('/Data', spotsRoutes);
-router.use('/Data', guidesRoutes);
-router.use('/Data', mapsRoutes);
-router.use('/Data', reviewsRoutes);
-router.use('/Data', placesRoutes);
-router.use('/Data', directionsRoutes);
+router.use('/Data', languagesRoutes);
+router.use('/Data', booksRoutes);
+router.use('/Data', chaptersRoutes);
+router.use('/Data', quotesRoutes);
 
 module.exports = router;

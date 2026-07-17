@@ -11,6 +11,7 @@ const { languageMiddleware } = require('./middleware/language');
 const { errorHandler } = require('./middleware/errorHandler');
 
 // Routes
+const legacyStorageRoutes = require('./routes/legacyStorage');
 const v2012Routes = require('./routes/v2012');
 const v2026Routes = require('./routes/v2026');
 
@@ -35,6 +36,9 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// Legacy storage routes (before API routes)
+app.use('/', legacyStorageRoutes);
+
 // API Routes
 app.use('/api', v2012Routes);           // v2012 API for mobile apps
 app.use('/api/v2026', v2026Routes);     // v2026 API for admin/site
@@ -47,7 +51,7 @@ app.use(errorHandler);
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`🚀 HolySpots Backend running on port ${PORT}`);
+  console.log(`🚀 Bhagavad-Gita Backend running on port ${PORT}`);
   console.log(`📚 Swagger v2012: http://localhost:${PORT}/api-docs`);
   console.log(`📚 Swagger v2026: http://localhost:${PORT}/api/v2026-docs`);
 });
