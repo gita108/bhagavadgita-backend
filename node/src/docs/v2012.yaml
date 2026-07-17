@@ -1,14 +1,16 @@
 openapi: 3.0.3
 info:
-  title: HolySpots API v2012
+  title: Bhagavad-Gita API v2012
   description: |
-    Legacy API for mobile applications (holyspots-mobile-java-v2012, holyspots-mobile-swift-v2012).
+    API for Bhagavad-Gita mobile applications (bhagavadgita-mobile-java-v2012, bhagavadgita-mobile-swift-v2012).
+
+    All endpoints use POST method.
 
     All responses follow the format:
     ```json
     {
       "code": 0,
-      "msg": "Success",
+      "msg": "",
       "data": [...]
     }
     ```
@@ -16,7 +18,6 @@ info:
     Response codes:
     - 0: Success
     - 1: Error
-    - 100: Invalid token
   version: "2012"
 
 servers:
@@ -24,204 +25,137 @@ servers:
     description: v2012 API
 
 tags:
-  - name: Regions
-    description: Cities/Regions endpoints
-  - name: Spots
-    description: Sacred places
-  - name: Guides
-    description: Routes/Tours
-  - name: Maps
-    description: Offline maps
-  - name: Reviews
-    description: User reviews
-  - name: Places
-    description: Hotels, restaurants
-  - name: Directions
-    description: Travel directions
+  - name: Languages
+    description: Available languages
+  - name: Books
+    description: Book translations
+  - name: Chapters
+    description: Chapters with slokas
+  - name: Quotes
+    description: Daily quotes
 
 paths:
-  /Data/GetRegions:
-    get:
-      tags: [Regions]
-      summary: Get all regions
-      description: Returns all active cities/regions
-      parameters:
-        - $ref: '#/components/parameters/AcceptLanguage'
-      responses:
-        '200':
-          description: List of regions
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/V2012Response'
-
-  /Data/GetSpots:
-    get:
-      tags: [Spots]
-      summary: Get spots for a region
-      parameters:
-        - $ref: '#/components/parameters/AcceptLanguage'
-        - name: regionId
-          in: query
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: List of spots
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/V2012Response'
-
-  /Data/GetGuides:
-    get:
-      tags: [Guides]
-      summary: Get guides for a region
-      parameters:
-        - $ref: '#/components/parameters/AcceptLanguage'
-        - name: regionId
-          in: query
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: List of guides
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/V2012Response'
-
-  /Data/GetMaps:
-    get:
-      tags: [Maps]
-      summary: Get offline maps for a region
-      parameters:
-        - name: regionId
-          in: query
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: List of maps
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/V2012Response'
-
-  /Data/GetReviews:
-    get:
-      tags: [Reviews]
-      summary: Get reviews for a spot
-      parameters:
-        - name: spotId
-          in: query
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: List of reviews
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/V2012Response'
-
-  /Data/AddReview:
+  /Data/Languages:
     post:
-      tags: [Reviews]
-      summary: Add a new review
+      tags: [Languages]
+      summary: Get all languages
+      description: Returns all available languages for translations
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+      responses:
+        '200':
+          description: List of languages
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/V2012Response'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Language'
+
+  /Data/Books:
+    post:
+      tags: [Books]
+      summary: Get books
+      description: Returns all books or filtered by IDs
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
       requestBody:
         content:
-          multipart/form-data:
+          application/json:
             schema:
               type: object
-              required: [spotId]
               properties:
-                spotId:
-                  type: string
-                  format: uuid
-                rate:
-                  type: integer
-                  minimum: 1
-                  maximum: 5
-                text:
-                  type: string
-                photos:
+                ids:
                   type: array
                   items:
+                    type: integer
+                  description: Optional array of book IDs to filter
+      responses:
+        '200':
+          description: List of books
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/V2012Response'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Book'
+
+  /Data/Chapters:
+    post:
+      tags: [Chapters]
+      summary: Get chapters for a book
+      description: Returns chapters with nested slokas and vocabularies
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [bookId]
+              properties:
+                bookId:
+                  type: integer
+                  description: ID of the book
+      responses:
+        '200':
+          description: List of chapters with slokas
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/V2012Response'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Chapter'
+
+  /Data/Quotes:
+    post:
+      tags: [Quotes]
+      summary: Get random quote
+      description: Returns a random quote (filtered by Accept-Language if possible)
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+      responses:
+        '200':
+          description: Random quote (single object, not array)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    enum: [0, 1]
+                  msg:
                     type: string
-                    format: binary
-      responses:
-        '200':
-          description: Created review
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/V2012Response'
-
-  /Data/GetPlaces:
-    get:
-      tags: [Places]
-      summary: Get places for a region
-      parameters:
-        - $ref: '#/components/parameters/AcceptLanguage'
-        - name: regionId
-          in: query
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: type
-          in: query
-          schema:
-            type: integer
-            enum: [0, 1]
-            description: "0 = Hotel, 1 = Food"
-      responses:
-        '200':
-          description: List of places
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/V2012Response'
-
-  /Data/GetDirections:
-    get:
-      tags: [Directions]
-      summary: Get directions for a region
-      parameters:
-        - $ref: '#/components/parameters/AcceptLanguage'
-        - name: regionId
-          in: query
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: List of directions
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/V2012Response'
+                  data:
+                    $ref: '#/components/schemas/Quote'
 
 components:
   parameters:
     AcceptLanguage:
       name: Accept-Language
       in: header
-      description: Language code (en, ru, hi)
+      description: Language code (en, ru, de, spa)
       schema:
         type: string
         default: en
-        enum: [en, ru, hi]
+        enum: [en, ru, de, spa]
 
   schemas:
     V2012Response:
@@ -229,70 +163,113 @@ components:
       properties:
         code:
           type: integer
-          enum: [0, 1, 100]
+          enum: [0, 1]
+          description: "0 = Success, 1 = Error"
         msg:
           type: string
+          description: Error message (empty on success)
         data:
           type: array
           items:
             type: object
 
-    Region:
+    Language:
       type: object
       properties:
         id:
-          type: string
-        photo:
-          type: string
-        name:
-          type: string
-        descr:
-          type: string
-        spotsCount:
           type: integer
-        isDeleted:
-          type: boolean
+          example: 1
+        name:
+          type: string
+          example: "English"
+        code:
+          type: string
+          example: "en"
 
-    Spot:
+    Book:
       type: object
       properties:
         id:
-          type: string
-        regionId:
-          type: string
+          type: integer
+          example: 1
+        languageId:
+          type: integer
+          example: 2
         name:
           type: string
-        descr:
+          example: "Bhagavad-gita As It Is"
+        initials:
           type: string
-        mainPhoto:
+          example: "SP"
+        chaptersCount:
+          type: integer
+          example: 18
+
+    Chapter:
+      type: object
+      properties:
+        name:
           type: string
-        lat:
-          type: number
-        lng:
-          type: number
-        address:
-          type: string
+          example: "Observing the Armies"
         order:
           type: integer
-        isDeleted:
-          type: boolean
-        photos:
+          example: 1
+        slokas:
           type: array
           items:
-            type: object
-            properties:
-              id:
-                type: string
-              photo:
-                type: string
-        audios:
+            $ref: '#/components/schemas/Sloka'
+
+    Sloka:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "1.1"
+        text:
+          type: string
+          description: Sanskrit text
+        transcription:
+          type: string
+          description: Transliteration
+        translation:
+          type: string
+          description: Translation in target language
+        comment:
+          type: string
+          description: Commentary
+        order:
+          type: integer
+          example: 1
+        audio:
+          type: string
+          description: Audio file path (translation)
+          example: "/Files/abc123.mp3"
+        audioSanskrit:
+          type: string
+          description: Audio file path (Sanskrit)
+        vocabularies:
           type: array
           items:
-            type: object
-            properties:
-              id:
-                type: string
-              file:
-                type: string
-              lang:
-                type: string
+            $ref: '#/components/schemas/Vocabulary'
+
+    Vocabulary:
+      type: object
+      properties:
+        text:
+          type: string
+          description: Sanskrit word
+          example: "dharma"
+        translation:
+          type: string
+          description: Word meaning
+          example: "religion, duty"
+
+    Quote:
+      type: object
+      properties:
+        author:
+          type: string
+          example: "A.C. Bhaktivedanta Swami Prabhupada"
+        text:
+          type: string
+          example: "The purpose of Bhagavad-gita is to deliver mankind..."

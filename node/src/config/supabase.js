@@ -1,4 +1,5 @@
 const { createClient } = require('@supabase/supabase-js');
+const WebSocket = require('ws');
 
 let supabase = null;
 
@@ -11,7 +12,11 @@ function initSupabase() {
     return null;
   }
 
-  supabase = createClient(supabaseUrl, supabaseKey);
+  supabase = createClient(supabaseUrl, supabaseKey, {
+    realtime: {
+      transport: WebSocket
+    }
+  });
   console.log('✅ Supabase client initialized');
   return supabase;
 }
