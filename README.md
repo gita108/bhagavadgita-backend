@@ -1,1 +1,0 @@
-# bhagavadgita-backend
