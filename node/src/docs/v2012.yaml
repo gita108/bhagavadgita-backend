@@ -1,0 +1,298 @@
+openapi: 3.0.3
+info:
+  title: HolySpots API v2012
+  description: |
+    Legacy API for mobile applications (holyspots-mobile-java-v2012, holyspots-mobile-swift-v2012).
+
+    All responses follow the format:
+    ```json
+    {
+      "code": 0,
+      "msg": "Success",
+      "data": [...]
+    }
+    ```
+
+    Response codes:
+    - 0: Success
+    - 1: Error
+    - 100: Invalid token
+  version: "2012"
+
+servers:
+  - url: /api
+    description: v2012 API
+
+tags:
+  - name: Regions
+    description: Cities/Regions endpoints
+  - name: Spots
+    description: Sacred places
+  - name: Guides
+    description: Routes/Tours
+  - name: Maps
+    description: Offline maps
+  - name: Reviews
+    description: User reviews
+  - name: Places
+    description: Hotels, restaurants
+  - name: Directions
+    description: Travel directions
+
+paths:
+  /Data/GetRegions:
+    get:
+      tags: [Regions]
+      summary: Get all regions
+      description: Returns all active cities/regions
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+      responses:
+        '200':
+          description: List of regions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/V2012Response'
+
+  /Data/GetSpots:
+    get:
+      tags: [Spots]
+      summary: Get spots for a region
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - name: regionId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: List of spots
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/V2012Response'
+
+  /Data/GetGuides:
+    get:
+      tags: [Guides]
+      summary: Get guides for a region
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - name: regionId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: List of guides
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/V2012Response'
+
+  /Data/GetMaps:
+    get:
+      tags: [Maps]
+      summary: Get offline maps for a region
+      parameters:
+        - name: regionId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: List of maps
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/V2012Response'
+
+  /Data/GetReviews:
+    get:
+      tags: [Reviews]
+      summary: Get reviews for a spot
+      parameters:
+        - name: spotId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: List of reviews
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/V2012Response'
+
+  /Data/AddReview:
+    post:
+      tags: [Reviews]
+      summary: Add a new review
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [spotId]
+              properties:
+                spotId:
+                  type: string
+                  format: uuid
+                rate:
+                  type: integer
+                  minimum: 1
+                  maximum: 5
+                text:
+                  type: string
+                photos:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+      responses:
+        '200':
+          description: Created review
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/V2012Response'
+
+  /Data/GetPlaces:
+    get:
+      tags: [Places]
+      summary: Get places for a region
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - name: regionId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: type
+          in: query
+          schema:
+            type: integer
+            enum: [0, 1]
+            description: "0 = Hotel, 1 = Food"
+      responses:
+        '200':
+          description: List of places
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/V2012Response'
+
+  /Data/GetDirections:
+    get:
+      tags: [Directions]
+      summary: Get directions for a region
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - name: regionId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: List of directions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/V2012Response'
+
+components:
+  parameters:
+    AcceptLanguage:
+      name: Accept-Language
+      in: header
+      description: Language code (en, ru, hi)
+      schema:
+        type: string
+        default: en
+        enum: [en, ru, hi]
+
+  schemas:
+    V2012Response:
+      type: object
+      properties:
+        code:
+          type: integer
+          enum: [0, 1, 100]
+        msg:
+          type: string
+        data:
+          type: array
+          items:
+            type: object
+
+    Region:
+      type: object
+      properties:
+        id:
+          type: string
+        photo:
+          type: string
+        name:
+          type: string
+        descr:
+          type: string
+        spotsCount:
+          type: integer
+        isDeleted:
+          type: boolean
+
+    Spot:
+      type: object
+      properties:
+        id:
+          type: string
+        regionId:
+          type: string
+        name:
+          type: string
+        descr:
+          type: string
+        mainPhoto:
+          type: string
+        lat:
+          type: number
+        lng:
+          type: number
+        address:
+          type: string
+        order:
+          type: integer
+        isDeleted:
+          type: boolean
+        photos:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              photo:
+                type: string
+        audios:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              file:
+                type: string
+              lang:
+                type: string
