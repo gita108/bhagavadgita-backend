@@ -63,5 +63,8 @@ module.exports = {
   v2012Response,
   v2012Error,
   v2026Response,
-  v2026Error
+  v2026Error,
+  // Aliases for files.js compatibility
+  sendV2026Success: v2026Response,
+  sendV2026Error: v2026Error
 };

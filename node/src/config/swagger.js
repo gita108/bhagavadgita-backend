@@ -17,6 +17,13 @@ function setupSwagger(app) {
     const v2026Spec = YAML.load(v2026Path);
     app.use('/api/v2026-docs', swaggerUi.serveFiles(v2026Spec), swaggerUi.setup(v2026Spec));
   }
+
+  // v2026 Admin API docs
+  const v2026AdminPath = path.join(__dirname, '../docs/v2026-admin.yaml');
+  if (fs.existsSync(v2026AdminPath)) {
+    const v2026AdminSpec = YAML.load(v2026AdminPath);
+    app.use('/api/v2026-admin-docs', swaggerUi.serveFiles(v2026AdminSpec), swaggerUi.setup(v2026AdminSpec));
+  }
 }
 
 module.exports = { setupSwagger };

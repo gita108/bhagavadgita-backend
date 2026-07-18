@@ -1,0 +1,697 @@
+openapi: 3.0.3
+info:
+  title: Bhagavad-Gita Admin API v2026
+  description: |
+    Admin API for managing Bhagavad-Gita content.
+
+    All responses follow the format:
+    ```json
+    {
+      "success": true,
+      "data": { ... },
+      "pagination": { "page": 1, "limit": 20, "total": 100 }
+    }
+    ```
+
+    Error responses:
+    ```json
+    {
+      "success": false,
+      "error": "Error message",
+      "data": null
+    }
+    ```
+  version: "2026"
+
+servers:
+  - url: /api/v2026/admin
+    description: Admin API
+
+tags:
+  - name: Auth
+    description: Authentication
+  - name: Languages
+    description: Language management
+  - name: Books
+    description: Book (commentary) management
+  - name: Chapters
+    description: Chapter management
+  - name: Slokas
+    description: Sloka (verse) management
+  - name: Quotes
+    description: Quote management
+  - name: Devices
+    description: Device statistics
+  - name: Import
+    description: XML import
+  - name: Files
+    description: File uploads
+
+paths:
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Admin login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /languages:
+    get:
+      tags: [Languages]
+      summary: List all languages
+      responses:
+        '200':
+          description: List of languages
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LanguagesResponse'
+    post:
+      tags: [Languages]
+      summary: Create language
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LanguageInput'
+      responses:
+        '200':
+          description: Language created
+
+  /languages/{id}:
+    get:
+      tags: [Languages]
+      summary: Get language by ID
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Language details
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags: [Languages]
+      summary: Update language
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LanguageInput'
+      responses:
+        '200':
+          description: Language updated
+    delete:
+      tags: [Languages]
+      summary: Delete language
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Language deleted
+        '400':
+          description: Cannot delete (has linked books/quotes)
+
+  /books:
+    get:
+      tags: [Books]
+      summary: List all books
+      parameters:
+        - name: languageId
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of books
+    post:
+      tags: [Books]
+      summary: Create book
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookInput'
+      responses:
+        '200':
+          description: Book created
+
+  /books/{id}:
+    get:
+      tags: [Books]
+      summary: Get book by ID
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Book details
+    put:
+      tags: [Books]
+      summary: Update book
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookInput'
+      responses:
+        '200':
+          description: Book updated
+    delete:
+      tags: [Books]
+      summary: Delete book (cascade)
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Book and all chapters/slokas deleted
+
+  /chapters:
+    get:
+      tags: [Chapters]
+      summary: List chapters for a book
+      parameters:
+        - name: bookId
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of chapters
+    post:
+      tags: [Chapters]
+      summary: Create chapter
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChapterInput'
+      responses:
+        '200':
+          description: Chapter created
+
+  /chapters/reorder:
+    put:
+      tags: [Chapters]
+      summary: Reorder chapters
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [bookId, order]
+              properties:
+                bookId:
+                  type: integer
+                order:
+                  type: array
+                  items:
+                    type: integer
+                  description: Chapter IDs in new order
+      responses:
+        '200':
+          description: Chapters reordered
+
+  /chapters/{id}:
+    get:
+      tags: [Chapters]
+      summary: Get chapter by ID
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Chapter details
+    put:
+      tags: [Chapters]
+      summary: Update chapter
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChapterInput'
+      responses:
+        '200':
+          description: Chapter updated
+    delete:
+      tags: [Chapters]
+      summary: Delete chapter (cascade)
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Chapter and all slokas deleted
+
+  /slokas:
+    get:
+      tags: [Slokas]
+      summary: List slokas for a chapter
+      parameters:
+        - name: chapterId
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: List of slokas with pagination
+    post:
+      tags: [Slokas]
+      summary: Create sloka
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SlokaInput'
+      responses:
+        '200':
+          description: Sloka created
+
+  /slokas/reorder:
+    put:
+      tags: [Slokas]
+      summary: Reorder slokas
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [chapterId, order]
+              properties:
+                chapterId:
+                  type: integer
+                order:
+                  type: array
+                  items:
+                    type: integer
+      responses:
+        '200':
+          description: Slokas reordered
+
+  /slokas/{id}:
+    get:
+      tags: [Slokas]
+      summary: Get sloka with vocabularies
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Sloka details with vocabularies
+    put:
+      tags: [Slokas]
+      summary: Update sloka
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SlokaInput'
+      responses:
+        '200':
+          description: Sloka updated
+    delete:
+      tags: [Slokas]
+      summary: Delete sloka
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Sloka deleted
+
+  /quotes:
+    get:
+      tags: [Quotes]
+      summary: List quotes
+      parameters:
+        - name: languageId
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of quotes
+    post:
+      tags: [Quotes]
+      summary: Create quote
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuoteInput'
+      responses:
+        '200':
+          description: Quote created
+
+  /quotes/{id}:
+    get:
+      tags: [Quotes]
+      summary: Get quote by ID
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Quote details
+    put:
+      tags: [Quotes]
+      summary: Update quote
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuoteInput'
+      responses:
+        '200':
+          description: Quote updated
+    delete:
+      tags: [Quotes]
+      summary: Delete quote
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Quote deleted
+
+  /quotes/{id}/set-day:
+    put:
+      tags: [Quotes]
+      summary: Set as quote of the day
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Quote set as day quote
+
+  /devices:
+    get:
+      tags: [Devices]
+      summary: List devices
+      parameters:
+        - name: platform
+          in: query
+          schema:
+            type: string
+            enum: [ios, android, windows]
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+      responses:
+        '200':
+          description: List of devices
+
+  /devices/stats:
+    get:
+      tags: [Devices]
+      summary: Device statistics
+      responses:
+        '200':
+          description: Device stats
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceStats'
+
+  /import/xml:
+    post:
+      tags: [Import]
+      summary: Import book from XML
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [bookId, file]
+              properties:
+                bookId:
+                  type: integer
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Import result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImportResult'
+
+  /files/upload:
+    post:
+      tags: [Files]
+      summary: Upload file
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                folder:
+                  type: string
+                  default: uploads
+      responses:
+        '201':
+          description: File uploaded
+
+components:
+  parameters:
+    IdParam:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+
+  responses:
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+        data:
+          nullable: true
+
+    AuthResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            token:
+              type: string
+            user:
+              type: object
+              properties:
+                id:
+                  type: string
+                email:
+                  type: string
+
+    LanguagesResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Language'
+
+    Language:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        code:
+          type: string
+        booksCount:
+          type: integer
+        quotesCount:
+          type: integer
+
+    LanguageInput:
+      type: object
+      properties:
+        name:
+          type: string
+        code:
+          type: string
+
+    BookInput:
+      type: object
+      properties:
+        languageId:
+          type: integer
+        name:
+          type: string
+        initials:
+          type: string
+
+    ChapterInput:
+      type: object
+      properties:
+        bookId:
+          type: integer
+        name:
+          type: string
+        order:
+          type: integer
+
+    SlokaInput:
+      type: object
+      properties:
+        chapterId:
+          type: integer
+        name:
+          type: string
+        text:
+          type: string
+        transcription:
+          type: string
+        translation:
+          type: string
+        comment:
+          type: string
+        order:
+          type: integer
+        audio:
+          type: string
+        audioSanskrit:
+          type: string
+        vocabularies:
+          type: array
+          items:
+            type: object
+            properties:
+              text:
+                type: string
+              translation:
+                type: string
+
+    QuoteInput:
+      type: object
+      properties:
+        languageId:
+          type: integer
+        author:
+          type: string
+        text:
+          type: string
+        isDay:
+          type: boolean
+
+    DeviceStats:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            total:
+              type: integer
+            active30days:
+              type: integer
+            byPlatform:
+              type: object
+              properties:
+                android:
+                  type: integer
+                ios:
+                  type: integer
+                windows:
+                  type: integer
+
+    ImportResult:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            chapters:
+              type: integer
+            slokas:
+              type: integer
+            vocabularies:
+              type: integer
+            warnings:
+              type: array
+              items:
+                type: string

@@ -54,6 +54,7 @@ app.listen(PORT, () => {
   console.log(`🚀 Bhagavad-Gita Backend running on port ${PORT}`);
   console.log(`📚 Swagger v2012: http://localhost:${PORT}/api-docs`);
   console.log(`📚 Swagger v2026: http://localhost:${PORT}/api/v2026-docs`);
+  console.log(`📚 Swagger v2026-admin: http://localhost:${PORT}/api/v2026-admin-docs`);
 });
 
 module.exports = app;
